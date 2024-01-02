@@ -34,7 +34,7 @@ todoRouter.put("/:id",authenticateToken, async (req, res) => {
     const { title, description, completed } = req.body;
     const updatedTodo = await TodoModel.findByIdAndUpdate(
       req.params.id,
-      { title, description, completed },
+      { title, description, isCompleted },
       { new: true }
     );
     res.status(200).json({msg:"Todo updated successfully",updatedTodo});
