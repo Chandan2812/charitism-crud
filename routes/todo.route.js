@@ -1,4 +1,3 @@
-// routes/todo.js
 const express = require("express");
 const { TodoModel } = require("../models/todo.model");
 const authenticateToken = require('../middleware/authmiddleware');
@@ -9,7 +8,8 @@ const todoRouter = express.Router();
 todoRouter.post("/", authenticateToken, async (req, res) => {
   try {
     const { title, description, category } = req.body;
-    const createdBy = req.user.userId; // Get the user ID from the JWT
+    // Get the user ID from the JWT token
+    const createdBy = req.user.userId;
     const todo = new TodoModel({ title, description, category, createdBy });
     await todo.save();
     res.status(201).json(todo);
@@ -28,11 +28,11 @@ todoRouter.get("/", async (req, res) => {
   }
 });
 
-
 // Update a Todo by ID
 todoRouter.put("/:id", authenticateToken, async (req, res) => {
   try {
     const todo = await TodoModel.findById(req.params.id);
+    // Check if the Todo exists and if the user has permission
     if (!todo || todo.createdBy.toString() !== req.user.userId) {
       return res.status(403).json({ error: "Permission denied" });
     }
@@ -53,6 +53,7 @@ todoRouter.put("/:id", authenticateToken, async (req, res) => {
 todoRouter.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const todo = await TodoModel.findById(req.params.id);
+    // Check if the Todo exists and if the user has permission
     if (!todo || todo.createdBy.toString() !== req.user.userId) {
       return res.status(403).json({ error: "Permission denied" });
     }
