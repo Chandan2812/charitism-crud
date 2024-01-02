@@ -1,16 +1,16 @@
-
+// routes/todo.js
 const express = require("express");
-const {TodoModel} = require("../models/todo.model");
+const { TodoModel } = require("../models/todo.model");
 const authenticateToken = require('../middleware/authmiddleware');
 
 const todoRouter = express.Router();
 
-
 // Create a new Todo
-todoRouter.post("/",authenticateToken, async (req, res) => {
+todoRouter.post("/", authenticateToken, async (req, res) => {
   try {
-    const { title, description } = req.body;
-    const todo = new TodoModel({ title, description });
+    const { title, description, category } = req.body;
+    const createdBy = req.user.userId; // Get the user ID from the JWT
+    const todo = new TodoModel({ title, description, category, createdBy });
     await todo.save();
     res.status(201).json(todo);
   } catch (error) {
@@ -28,29 +28,40 @@ todoRouter.get("/", async (req, res) => {
   }
 });
 
+
 // Update a Todo by ID
-todoRouter.put("/:id",authenticateToken, async (req, res) => {
+todoRouter.put("/:id", authenticateToken, async (req, res) => {
   try {
-    const { title, description, completed } = req.body;
+    const todo = await TodoModel.findById(req.params.id);
+    if (!todo || todo.createdBy.toString() !== req.user.userId) {
+      return res.status(403).json({ error: "Permission denied" });
+    }
+
+    const { title, description, isCompleted, category } = req.body;
     const updatedTodo = await TodoModel.findByIdAndUpdate(
       req.params.id,
-      { title, description, isCompleted },
+      { title, description, isCompleted, category },
       { new: true }
     );
-    res.status(200).json({msg:"Todo updated successfully",updatedTodo});
+    res.status(200).json({ msg: "Todo updated successfully", updatedTodo });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 // Delete a Todo by ID
-todoRouter.delete("/:id",authenticateToken, async (req, res) => {
+todoRouter.delete("/:id", authenticateToken, async (req, res) => {
   try {
+    const todo = await TodoModel.findById(req.params.id);
+    if (!todo || todo.createdBy.toString() !== req.user.userId) {
+      return res.status(403).json({ error: "Permission denied" });
+    }
+
     await TodoModel.findByIdAndDelete(req.params.id);
-    res.status(201).json({msg:"Todo deleted succesfully"});
+    res.status(200).json({ msg: "Todo deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-module.exports = {todoRouter};
+module.exports = { todoRouter };
