@@ -1,4 +1,4 @@
-// routes/todo.js
+
 const express = require("express");
 const {TodoModel} = require("../models/todo.model");
 const authenticateToken = require('../middleware/authmiddleware');
