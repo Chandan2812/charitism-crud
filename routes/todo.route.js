@@ -19,9 +19,9 @@ todoRouter.post("/", authenticateToken, async (req, res) => {
 });
 
 // Get all Todos
-todoRouter.get("/", async (req, res) => {
+todoRouter.get("/", authenticateToken, async (req, res) => {
   try {
-    const todos = await TodoModel.find();
+    const todos = await TodoModel.find({ createdBy: req.user.userId });
     res.status(200).json(todos);
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
